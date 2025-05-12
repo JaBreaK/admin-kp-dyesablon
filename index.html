@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produk Management</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS (UMD build) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold mb-4">Manajemen Produk</h1>
+    <!-- Form untuk tambah / edit produk -->
+    <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <input type="hidden" id="product-id" />
+      <div>
+        <label class="block font-medium">Title</label>
+        <input id="title" class="w-full border rounded px-2 py-1" />
+      </div>
+      <div>
+        <label class="block font-medium">Slug</label>
+        <input id="slug" class="w-full border rounded px-2 py-1" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="block font-medium">Categories (comma separated)</label>
+        <input id="categories" class="w-full border rounded px-2 py-1" />
+      </div>
+      <div>
+        <label class="block font-medium">Image URL</label>
+        <input id="image" class="w-full border rounded px-2 py-1" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="block font-medium">Description</label>
+        <textarea id="desk" class="w-full border rounded px-2 py-1" rows="3"></textarea>
+      </div>
+      <div class="md:col-span-2 text-right">
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded" id="submit-btn">Tambah Produk</button>
+        <button type="button" class="bg-gray-400 text-white px-4 py-2 rounded hidden" id="cancel-btn">Batal</button>
+      </div>
+    </form>
+
+    <!-- Tabel daftar produk -->
+    <table class="w-full table-auto">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2">Title</th>
+          <th class="px-4 py-2">Categories</th>
+          <th class="px-4 py-2">Image</th>
+          <th class="px-4 py-2">Slug</th>
+          <th class="px-4 py-2">Description</th>
+          <th class="px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="products-table" class="bg-white"></tbody>
+    </table>
+  </div>
+
+<script>
+  // Ganti dengan URL dan PUBLIC_ANON_KEY Supabase Anda
+const SUPABASE_URL = 'https://pmfzypvynmyotmvbgafi.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtZnp5cHZ5bm15b3RtdmJnYWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxNTcxNTgsImV4cCI6MjA2MTczMzE1OH0.NimEhbTS9Rz_GGXpEABU_rWunPB6TUN7S4ufTS7FNiM';
+  
+  // NOTE: Pastikan origin aplikasi kamu (misal http://127.0.0.1:5500) sudah ditambahkan di Supabase Dashboard → Settings → API → Allowed request origins untuk menghindari CORS error.
+  // Buat instance Supabase client, gunakan nama berbeda untuk menghindari shadowing
+  const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Fetch dan render produk
+  async function fetchProducts() {
+    const { data, error } = await sbClient
+      .from('produk')
+      .select('*')
+      .order('title', { ascending: true });
+    if (error) return console.error(error);
+
+    const tbody = document.getElementById('products-table');
+    tbody.innerHTML = '';
+    data.forEach(p => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="border px-4 py-2">${p.title}</td>
+        <td class="border px-4 py-2">${p.categories.join(', ')}</td>
+        <td class="border px-4 py-2"><img src="${p.image}" alt="" class="h-12" /></td>
+        <td class="border px-4 py-2">${p.slug}</td>
+        <td class="border px-4 py-2">${p.desk}</td>
+        <td class="border px-4 py-2 space-x-2">
+          <button onclick="editProduct('${p.id}')" class="text-blue-500">Edit</button>
+          <button onclick="deleteProduct('${p.id}')" class="text-red-500">Hapus</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  // Tambah produk
+  async function addProduct(payload) {
+    const { error } = await sbClient.from('produk').insert([payload]);
+    if (error) return console.error(error);
+    fetchProducts();
+  }
+
+  // Update produk
+  async function updateProduct(id, payload) {
+    const { error } = await sbClient.from('produk').update(payload).eq('id', id);
+    if (error) return console.error(error);
+    fetchProducts();
+  }
+
+  // Hapus produk
+  async function deleteProduct(id) {
+    if (!confirm('Yakin ingin menghapus?')) return;
+    const { error } = await sbClient.from('produk').delete().eq('id', id);
+    if (error) return console.error(error);
+    fetchProducts();
+  }
+
+  // Isi form untuk edit
+  async function editProduct(id) {
+    const { data, error } = await sbClient.from('produk').select('*').eq('id', id).single();
+    if (error) return console.error(error);
+    document.getElementById('product-id').value = data.id;
+    document.getElementById('title').value = data.title;
+    document.getElementById('slug').value = data.slug;
+    document.getElementById('categories').value = data.categories.join(', ');
+    document.getElementById('image').value = data.image;
+    document.getElementById('desk').value = data.desk;
+    document.getElementById('submit-btn').textContent = 'Update Produk';
+    document.getElementById('cancel-btn').classList.remove('hidden');
+  }
+
+  // Reset form
+  function resetForm() {
+    document.getElementById('product-id').value = '';
+    document.getElementById('product-form').reset();
+    document.getElementById('submit-btn').textContent = 'Tambah Produk';
+    document.getElementById('cancel-btn').classList.add('hidden');
+  }
+
+  // Event listeners
+  document.getElementById('product-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const id = document.getElementById('product-id').value;
+    const payload = {
+      title: document.getElementById('title').value,
+      slug: document.getElementById('slug').value,
+      categories: document.getElementById('categories').value.split(',').map(s => s.trim()),
+      image: document.getElementById('image').value,
+      desk: document.getElementById('desk').value
+    };
+    if (id) {
+      await updateProduct(id, payload);
+    } else {
+      await addProduct(payload);
+    }
+    resetForm();
+  });
+  document.getElementById('cancel-btn').addEventListener('click', resetForm);
+
+  // Inisialisasi daftar
+  fetchProducts();
+</script>
+</body>
+</html>
