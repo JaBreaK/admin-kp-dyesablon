@@ -12,43 +12,76 @@
 <body class="bg-gray-100 p-6">
   <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
     <h1 class="text-2xl font-bold mb-4">Manajemen Produk</h1>
-    <!-- Form untuk tambah / edit produk -->
+
     <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
       <input type="hidden" id="product-id" />
+      <input type="hidden" id="existing-image-url" />
+      <!-- Title -->
       <div>
         <label class="block font-medium">Title</label>
         <input id="title" class="w-full border rounded px-2 py-1" />
       </div>
-      <div>
-        <label class="block font-medium">Slug</label>
-        <input id="slug" class="w-full border rounded px-2 py-1" />
-      </div>
+
+      <!-- Categories -->
       <div class="md:col-span-2">
-        <label class="block font-medium">Categories (comma separated)</label>
-        <input id="categories" class="w-full border rounded px-2 py-1" />
+        <label class="block font-medium">Categories (pilih banyak)</label>
+        <div id="categories" class="grid grid-cols-2 gap-2 h-48 overflow-y-auto border rounded p-2">
+          <label><input type="checkbox" value="sublimasi" class="category-checkbox" /> Sublimasi</label>
+          <label><input type="checkbox" value="jersey-badminton" class="category-checkbox" /> Jersey Badminton</label>
+          <label><input type="checkbox" value="motoran" class="category-checkbox" /> Motoran</label>
+          <label><input type="checkbox" value="sablon" class="category-checkbox" /> Sablon</label>
+          <label><input type="checkbox" value="plastisol" class="category-checkbox" /> Plastisol</label>
+          <label><input type="checkbox" value="dtf" class="category-checkbox" /> DTF</label>
+          <label><input type="checkbox" value="batik" class="category-checkbox" /> Batik</label>
+          <label><input type="checkbox" value="jahit-kaos" class="category-checkbox" /> Jahit Kaos</label>
+          <label><input type="checkbox" value="jaket" class="category-checkbox" /> Jaket</label>
+          <label><input type="checkbox" value="dtf-motoran" class="category-checkbox" /> DTF Motoran</label>
+          <label><input type="checkbox" value="spanduk" class="category-checkbox" /> Spanduk</label>
+          <label><input type="checkbox" value="lanyard" class="category-checkbox" /> Lanyard</label>
+          <label><input type="checkbox" value="jahit" class="category-checkbox" /> Jahit</label>
+          <label><input type="checkbox" value="sablon-kaos" class="category-checkbox" /> Sablon Kaos</label>
+          <label><input type="checkbox" value="jersey-sepeda" class="category-checkbox" /> Jersey Sepeda</label>
+          <label><input type="checkbox" value="seragam" class="category-checkbox" /> Seragam</label>
+          <label><input type="checkbox" value="kemeja" class="category-checkbox" /> Kemeja</label>
+          <label><input type="checkbox" value="hoodie" class="category-checkbox" /> Hoodie</label>
+          <label><input type="checkbox" value="jersey-football" class="category-checkbox" /> Jersey Football</label>
+        </div>
       </div>
-      <div>
-        <label class="block font-medium">Image URL</label>
-        <input id="image" class="w-full border rounded px-2 py-1" />
-      </div>
+
+      <!-- Image File -->
+<!-- Drag and Drop Upload -->
+        <div class="md:col-span-2">
+            <label class="block font-medium mb-1">Upload Image</label>
+            <div id="drop-area" class="w-full flex items-center justify-center p-6 border-2 border-dashed border-gray-400 rounded cursor-pointer bg-gray-50 hover:bg-gray-100">
+            <p id="drop-text" class="text-gray-500 text-center">Drag & drop gambar di sini atau klik untuk memilih</p>
+            <input type="file" id="image-file" accept="image/*" class="hidden" />
+            </div>
+            <p id="file-name" class="text-sm mt-2 text-gray-600 italic"></p>
+            <img id="image-preview" class="mt-2 h-32 object-contain hidden border rounded shadow" />
+
+        </div>
+  
+
+      <!-- Description -->
       <div class="md:col-span-2">
         <label class="block font-medium">Description</label>
         <textarea id="desk" class="w-full border rounded px-2 py-1" rows="3"></textarea>
       </div>
+
+      <!-- Buttons -->
       <div class="md:col-span-2 text-right">
         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded" id="submit-btn">Tambah Produk</button>
         <button type="button" class="bg-gray-400 text-white px-4 py-2 rounded hidden" id="cancel-btn">Batal</button>
       </div>
     </form>
 
-    <!-- Tabel daftar produk -->
+    <!-- Table -->
     <table class="w-full table-auto">
       <thead>
         <tr class="bg-gray-200">
           <th class="px-4 py-2">Title</th>
           <th class="px-4 py-2">Categories</th>
           <th class="px-4 py-2">Image</th>
-          <th class="px-4 py-2">Slug</th>
           <th class="px-4 py-2">Description</th>
           <th class="px-4 py-2">Actions</th>
         </tr>
@@ -57,108 +90,256 @@
     </table>
   </div>
 
-<script>
-  // Ganti dengan URL dan PUBLIC_ANON_KEY Supabase Anda
-const SUPABASE_URL = 'https://pmfzypvynmyotmvbgafi.supabase.co';
+  <script>
+  const SUPABASE_URL = 'https://pmfzypvynmyotmvbgafi.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtZnp5cHZ5bm15b3RtdmJnYWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxNTcxNTgsImV4cCI6MjA2MTczMzE1OH0.NimEhbTS9Rz_GGXpEABU_rWunPB6TUN7S4ufTS7FNiM';
-  
-  // NOTE: Pastikan origin aplikasi kamu (misal http://127.0.0.1:5500) sudah ditambahkan di Supabase Dashboard → Settings → API → Allowed request origins untuk menghindari CORS error.
-  // Buat instance Supabase client, gunakan nama berbeda untuk menghindari shadowing
-  const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Fetch dan render produk
-  async function fetchProducts() {
-    const { data, error } = await sbClient
-      .from('produk')
-      .select('*')
-      .order('title', { ascending: true });
-    if (error) return console.error(error);
 
-    const tbody = document.getElementById('products-table');
-    tbody.innerHTML = '';
-    data.forEach(p => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="border px-4 py-2">${p.title}</td>
-        <td class="border px-4 py-2">${p.categories.join(', ')}</td>
-        <td class="border px-4 py-2"><img src="${p.image}" alt="" class="h-12" /></td>
-        <td class="border px-4 py-2">${p.slug}</td>
-        <td class="border px-4 py-2">${p.desk}</td>
-        <td class="border px-4 py-2 space-x-2">
-          <button onclick="editProduct('${p.id}')" class="text-blue-500">Edit</button>
-          <button onclick="deleteProduct('${p.id}')" class="text-red-500">Hapus</button>
-        </td>
-      `;
-      tbody.appendChild(row);
+    // helper slugify
+    const slugify = t =>
+      t
+        .toString()
+        .normalize('NFKD')
+        .replace(/[^\w\s-]/g, '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+    // Ambil array kategori terpilih
+    const getCats = () =>
+      Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
+
+    // Upload file ke Supabase Storage di folder kategori pertama
+    async function uploadImage(file) {
+  if (!file) return null;
+
+  // Folder tetap "produk" bukan berdasarkan kategori
+  const path = `produk/${Date.now()}_${file.name}`;
+
+  const { data, error } = await sb.storage
+    .from('images')
+    .upload(path, file, {
+      cacheControl: '3600',
+      upsert: false
     });
+
+  if (error) {
+    console.error('Upload error:', error);
+    return null;
   }
 
-  // Tambah produk
-  async function addProduct(payload) {
-    const { error } = await sbClient.from('produk').insert([payload]);
-    if (error) return console.error(error);
-    fetchProducts();
-  }
+  // Dapatkan URL publik
+  return sb.storage.from('images').getPublicUrl(data.path).data.publicUrl;
+}
 
-  // Update produk
-  async function updateProduct(id, payload) {
-    const { error } = await sbClient.from('produk').update(payload).eq('id', id);
-    if (error) return console.error(error);
-    fetchProducts();
-  }
 
-  // Hapus produk
-  async function deleteProduct(id) {
-    if (!confirm('Yakin ingin menghapus?')) return;
-    const { error } = await sbClient.from('produk').delete().eq('id', id);
-    if (error) return console.error(error);
-    fetchProducts();
-  }
-
-  // Isi form untuk edit
-  async function editProduct(id) {
-    const { data, error } = await sbClient.from('produk').select('*').eq('id', id).single();
-    if (error) return console.error(error);
-    document.getElementById('product-id').value = data.id;
-    document.getElementById('title').value = data.title;
-    document.getElementById('slug').value = data.slug;
-    document.getElementById('categories').value = data.categories.join(', ');
-    document.getElementById('image').value = data.image;
-    document.getElementById('desk').value = data.desk;
-    document.getElementById('submit-btn').textContent = 'Update Produk';
-    document.getElementById('cancel-btn').classList.remove('hidden');
-  }
-
-  // Reset form
-  function resetForm() {
-    document.getElementById('product-id').value = '';
-    document.getElementById('product-form').reset();
-    document.getElementById('submit-btn').textContent = 'Tambah Produk';
-    document.getElementById('cancel-btn').classList.add('hidden');
-  }
-
-  // Event listeners
-  document.getElementById('product-form').addEventListener('submit', async e => {
-    e.preventDefault();
-    const id = document.getElementById('product-id').value;
-    const payload = {
-      title: document.getElementById('title').value,
-      slug: document.getElementById('slug').value,
-      categories: document.getElementById('categories').value.split(',').map(s => s.trim()),
-      image: document.getElementById('image').value,
-      desk: document.getElementById('desk').value
-    };
-    if (id) {
-      await updateProduct(id, payload);
-    } else {
-      await addProduct(payload);
+    // Fetch dan render produk
+    async function fetchProducts() {
+      const { data, error } = await sb.from('produk').select('*').order('title', { ascending: true });
+      if (error) return console.error(error);
+      const tb = document.getElementById('products-table');
+      tb.innerHTML = '';
+      data.forEach(p => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border px-4 py-2">${p.title}</td>
+          <td class="border px-4 py-2">${p.categories.join(', ')}</td>
+          <td class="border px-4 py-2"><img src="${p.image}" class="h-12" /></td>
+          <td class="border px-4 py-2">${p.desk}</td>
+          <td class="border px-4 py-2 space-x-2">
+            <button onclick="editProduct('${p.id}')" class="text-blue-500">Edit</button>
+            <button onclick="deleteProduct('${p.id}')" class="text-red-500">Hapus</button>
+          </td>
+        `;
+        tb.appendChild(row);
+      });
     }
-    resetForm();
-  });
-  document.getElementById('cancel-btn').addEventListener('click', resetForm);
 
-  // Inisialisasi daftar
-  fetchProducts();
-</script>
+    async function addProduct(pay) {
+      await sb.from('produk').insert([pay]);
+      fetchProducts();
+    }
+
+    async function updateProduct(id, pay) {
+      await sb.from('produk').update(pay).eq('id', id);
+      fetchProducts();
+    }
+
+    async function deleteProduct(id) {
+  if (!confirm('Yakin ingin menghapus?')) return;
+
+  // 1. Ambil data produk dulu
+  const { data: produk, error: fetchError } = await sb.from('produk').select('*').eq('id', id).single();
+  if (fetchError) {
+    console.error('Gagal ambil data produk:', fetchError);
+    return;
+  }
+
+  // 2. Ambil path file dari URL public
+  if (produk.image) {
+    const url = new URL(produk.image);
+    const pathname = url.pathname; // /storage/v1/object/public/images/produk/namafile.jpg
+    const pathParts = pathname.split('/'); // ['','storage','v1','object','public','images','produk','namafile.jpg']
+    
+    // Ambil path setelah "images/"
+    const imagePath = pathParts.slice(6).join('/');
+    
+    // Hapus file dari storage
+    const { error: deleteErr } = await sb.storage.from('images').remove([imagePath]);
+    if (deleteErr) {
+      console.warn('Gagal hapus gambar dari storage:', deleteErr);
+    } else {
+      console.log('Gambar dihapus dari storage:', imagePath);
+    }
+  }
+
+  // 3. Hapus dari database
+  const { error: deleteDataErr } = await sb.from('produk').delete().eq('id', id);
+  if (deleteDataErr) {
+    console.error('Gagal hapus produk:', deleteDataErr);
+  } else {
+    fetchProducts();
+  }
+}
+
+
+    async function editProduct(id) {
+      const { data } = await sb.from('produk').select('*').eq('id', id).single();
+      document.getElementById('product-id').value = data.id;
+      document.getElementById('title').value = data.title;
+      document.getElementById('existing-image-url').value = data.image; // Tambah ini
+      document.querySelectorAll('.category-checkbox').forEach(cb => {
+        cb.checked = data.categories.includes(cb.value);
+      });
+      document.getElementById('desk').value = data.desk;
+      document.getElementById('submit-btn').textContent = 'Update Produk';
+      document.getElementById('cancel-btn').classList.remove('hidden');
+    }
+
+    function resetForm() {
+      document.getElementById('product-id').value = '';
+      document.getElementById('product-form').reset();
+      fileNameDisplay.textContent = '';
+      imagePreview.src = '';
+    imagePreview.classList.add('hidden');
+      document.querySelectorAll('.category-checkbox').forEach(cb => (cb.checked = false));
+      document.getElementById('existing-image-url').value = '';
+      document.getElementById('image-file').value = ''; // Bersihkan input file
+      document.getElementById('submit-btn').textContent = 'Tambah Produk';
+      document.getElementById('cancel-btn').classList.add('hidden');
+    }
+
+    document.getElementById('product-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('product-id').value;
+  const title = document.getElementById('title').value;
+  const categories = getCats();
+  const file = document.getElementById('image-file').files[0];
+  const existingImage = document.getElementById('existing-image-url').value;
+
+  // Handle upload gambar
+  let imageUrl = existingImage;
+  if (file) {
+  // Hapus gambar lama jika ada
+  if (existingImage) {
+    try {
+      const url = new URL(existingImage);
+      const pathname = url.pathname; // /storage/v1/object/public/images/produk/nama.jpg
+      const pathParts = pathname.split('/');
+      const imagePath = pathParts.slice(6).join('/'); // produk/nama.jpg
+
+      const { error: deleteOldErr } = await sb.storage.from('images').remove([imagePath]);
+      if (deleteOldErr) console.warn('Gagal hapus gambar lama:', deleteOldErr);
+      else console.log('Gambar lama berhasil dihapus:', imagePath);
+    } catch (err) {
+      console.warn('Gagal parse URL gambar lama:', err);
+    }
+  }
+
+  // Upload gambar baru
+  imageUrl = await uploadImage(file);
+}
+
+
+  const pay = {
+    title,
+    slug: slugify(title),
+    categories,
+    image: imageUrl,
+    desk: document.getElementById('desk').value,
+  };
+
+  if (id) await updateProduct(id, pay);
+  else await addProduct(pay);
+  
+  resetForm();
+});
+
+    document.getElementById('cancel-btn').addEventListener('click', resetForm);
+    fetchProducts();
+
+    const dropArea = document.getElementById('drop-area');
+const imageInput = document.getElementById('image-file');
+const fileNameDisplay = document.getElementById('file-name');
+
+// Klik drop area untuk membuka file picker
+dropArea.addEventListener('click', () => imageInput.click());
+
+// Update teks saat file dipilih
+imageInput.addEventListener('change', () => {
+  if (imageInput.files.length > 0) {
+    const file = imageInput.files[0];
+    fileNameDisplay.textContent = file.name;
+    updatePreview(file);
+  }
+});
+
+
+// Handle drag over
+dropArea.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropArea.classList.add('bg-blue-50', 'border-blue-400');
+});
+
+// Handle drag leave
+dropArea.addEventListener('dragleave', () => {
+  dropArea.classList.remove('bg-blue-50', 'border-blue-400');
+});
+
+// Handle drop
+dropArea.addEventListener('drop', e => {
+  e.preventDefault();
+  dropArea.classList.remove('bg-blue-50', 'border-blue-400');
+  
+  const droppedFile = e.dataTransfer.files[0];
+  if (droppedFile && droppedFile.type.startsWith('image/')) {
+    imageInput.files = e.dataTransfer.files;
+    fileNameDisplay.textContent = droppedFile.name;
+    updatePreview(droppedFile);
+  } else {
+    alert('Hanya gambar yang diizinkan!');
+  }
+});
+
+
+const imagePreview = document.getElementById('image-preview');
+
+function updatePreview(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    imagePreview.classList.add('hidden');
+    imagePreview.src = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    imagePreview.src = e.target.result;
+    imagePreview.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+  </script>
 </body>
 </html>
